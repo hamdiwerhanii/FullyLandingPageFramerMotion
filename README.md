@@ -1,14 +1,13 @@
-# Fully Animated Landing Page (Next.js + Framer Motion)
+# Learning App — Animated Landing Page
 
-A responsive, animated landing page for a fictional learning app, built with Next.js 15, React 19, Tailwind CSS v4 and Framer Motion.
+A responsive, animated landing page for a mobile learning app, built with **Next.js (App Router)**, **TypeScript**, **Tailwind CSS** and **Framer Motion**.
 
-![Next.js](https://img.shields.io/badge/Next.js-15.4-000000?logo=nextdotjs&logoColor=white)
-![React](https://img.shields.io/badge/React-19.1-61DAFB?logo=react&logoColor=black)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
-![Framer Motion](https://img.shields.io/badge/Framer_Motion-12-0055FF?logo=framer&logoColor=white)
-![Radix UI](https://img.shields.io/badge/Radix_UI-primitives-161618?logo=radixui&logoColor=white)
-![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-new--york-000000?logo=shadcnui&logoColor=white)
+![Framer Motion](https://img.shields.io/badge/Framer_Motion-14-0055FF?logo=framer&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-4-6E9F18?logo=vitest&logoColor=white)
 
 ---
 
@@ -20,11 +19,11 @@ A responsive, animated landing page for a fictional learning app, built with Nex
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Page Sections](#page-sections)
-- [Animation Approach](#animation-approach)
-- [Configuration Notes](#configuration-notes)
+- [Animation System](#animation-system)
+- [Customization](#customization)
+- [Testing and Quality](#testing-and-quality)
 - [Deployment](#deployment)
-- [Project Status and Roadmap](#project-status-and-roadmap)
-- [Contributing](#contributing)
+- [Roadmap](#roadmap)
 - [License](#license)
 - [Author](#author)
 
@@ -32,263 +31,199 @@ A responsive, animated landing page for a fictional learning app, built with Nex
 
 ## Overview
 
-This project is a single-page marketing site for a mobile learning app called "Your Perfect Learning App". It is a front-end showcase: the goal is to show how to build a clean, component-based landing page with the Next.js App Router and add scroll-triggered motion with Framer Motion.
+A single-page marketing site that presents a learning app: hero with store buttons, showcase banner, feature grid, statistics, testimonials and a download footer. It is a portfolio project that demonstrates:
 
-Every section is its own React component. Sections fade, slide and scale into view as you scroll, and cards react to hover with small micro-interactions. The UI primitives (`Button`, `Avatar`, `DropdownMenu`) come from the shadcn/ui setup (Radix UI + `class-variance-authority`). Styling uses Tailwind CSS v4 with CSS-variable design tokens.
-
-It suits developers who want a reference for:
-
-- Composing a landing page from small, reusable sections
-- Using Framer Motion `variants`, staggered children and `useInView` reveals
-- Using Tailwind CSS v4 (CSS-first config, no `tailwind.config.js`) with shadcn/ui components
-
-There is no back end, API or environment configuration. All content is static data defined inside the components.
-
----
+- A **feature-module architecture**: each section lives in `src/modules/<Area>/<Section>/` with separate `components`, `constants` (content) and `types`
+- **Server Components by default**: sections render on the server, and only small animation wrappers (`RevealGroup`, `RevealItem`, `HoverMotion`) ship JavaScript to the browser
+- A **shared animation system** built on Framer Motion variants, with automatic support for "reduce motion"
+- Accessible, semantic markup and working in-page navigation
+- Unit tests with Vitest + Testing Library and a GitHub Actions CI pipeline
 
 ## Features
 
-**Layout and sections**
-- Fixed dark navbar. On large screens it shows the menu links, social icons and a CTA button. On small screens it switches to a hamburger menu built on Radix `DropdownMenu`.
-- Hero section with a headline, App Store / Google Play buttons, a device mockup image and an overlapping "Learning App" info card
-- Video-intro teaser: a large preview image with a centered play icon
-- "Diverse Learning Resources" feature grid with four icon cards
-- "Mobile Convenience" section that pairs a phone image with a 2x2 stats grid (courses, instructors, support, rating)
-- "What Clients Say" testimonials with avatar images and initial-letter fallbacks
-- Dark footer with quick links and App Store / Google Play buttons
-
-**Animations (Framer Motion)**
-- Staggered entrance animation for the hero content when the page loads
-- Scroll-triggered reveals with `useInView` (`once: true`, `-100px` margin), so each section animates once as it enters the viewport
-- Directional slide-ins (left/right), a rotating play-button entrance and a 3D-style `rotateY` entrance for the hero image
-- Hover micro-interactions on feature cards, icon badges and testimonial cards (`whileHover` scale/lift/rotate)
-- The same cubic-bezier easing (`[0.25, 0.46, 0.45, 0.94]`) across the whole page for a consistent feel
-
-**Developer experience**
-- Strict TypeScript with the `@/*` path alias
-- shadcn/ui configuration (`components.json`, "new-york" style, neutral base color, CSS variables)
-- `cn()` helper (`clsx` + `tailwind-merge`) for conditional class names
-- ESLint via `eslint-config-next`
-- Optimized fonts (Google Roboto via `next/font`) and statically imported images through `next/image`
-
----
+- **Scroll-triggered animations**: sections fade, slide and stagger into view once, using Framer Motion `whileInView`
+- **Hover micro-interactions** on feature icons, statistics and testimonial cards
+- **Respects reduced motion**: a root `MotionConfig reducedMotion="user"` disables transforms for users who ask their OS to reduce motion, and smooth scrolling is turned off too
+- **Sticky header** with anchor navigation, active-section highlighting and an accessible mobile menu (closes on link click, `Escape` or resize; locks page scroll)
+- **Store buttons** (App Store / Google Play) as real, safe external links, shared by the hero and the footer
+- **SEO**: title template, description, Open Graph and Twitter metadata via the Next.js Metadata API, a generated **social preview image** (`opengraph-image.tsx`), `robots.txt`, `sitemap.xml` and the app icon via the `app/icon.png` convention
+- **Optimized images**: source images are pre-compressed WebP (about 200 KB in total instead of 4.8 MB) and served through `next/image` (AVIF/WebP, responsive `sizes`, `priority` on the hero image); the Roboto font is self-hosted through `next/font`
+- **Security headers** on every response: Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy and (in production) Strict-Transport-Security
+- **Custom 404 page** with a link back home; navigation links use `/#section` so they work from any page
+- **Static output**: the page is pre-rendered at build time
 
 ## Tech Stack
 
-| Category | Technology |
-| --- | --- |
-| Framework | [Next.js 15.4](https://nextjs.org/) (App Router) |
-| UI library | [React 19.1](https://react.dev/) |
-| Language | [TypeScript 5](https://www.typescriptlang.org/) |
-| Styling | [Tailwind CSS v4](https://tailwindcss.com/) via `@tailwindcss/postcss`, [`tw-animate-css`](https://github.com/Wombosvideo/tw-animate-css) |
-| Animation | [Framer Motion 12](https://motion.dev/) |
-| UI primitives | [Radix UI](https://www.radix-ui.com/) (`react-avatar`, `react-dropdown-menu`, `react-slot`) via [shadcn/ui](https://ui.shadcn.com/) |
-| Styling utilities | `class-variance-authority`, `clsx`, `tailwind-merge` |
-| Icons | [`react-icons`](https://react-icons.github.io/react-icons/), [`lucide-react`](https://lucide.dev/) |
-| Fonts | `next/font/google` (Roboto 300–900) |
-| Linting | ESLint 9 + `eslint-config-next` |
-
----
+| Category     | Technology                                                                  |
+| ------------ | --------------------------------------------------------------------------- |
+| Framework    | [Next.js 16](https://nextjs.org/) (App Router, Turbopack, React Compiler)   |
+| UI library   | [React 19](https://react.dev/)                                              |
+| Language     | [TypeScript 5](https://www.typescriptlang.org/) (strict)                    |
+| Styling      | [Tailwind CSS 4](https://tailwindcss.com/)                                  |
+| Animation    | [Framer Motion 14](https://motion.dev/)                                     |
+| UI utilities | `class-variance-authority`, `clsx`, `tailwind-merge`, `@radix-ui/react-slot` |
+| Icons        | [React Icons](https://react-icons.github.io/react-icons/)                   |
+| Testing      | [Vitest](https://vitest.dev/), Testing Library, jsdom                       |
+| Linting      | ESLint 10 with `eslint-config-next` (Core Web Vitals + TypeScript)          |
+| CI           | GitHub Actions                                                              |
 
 ## Project Structure
 
-```text
+```
 FullyLandingPageFramerMotion/
-├── app/
-│   ├── globals.css            # Tailwind v4 imports, theme tokens (CSS variables), base layer
-│   ├── layout.tsx             # Root layout: Roboto font, global styles, metadata
-│   └── page.tsx               # Home page that composes all sections
-├── components/
-│   ├── navbar.tsx             # Fixed top navigation + mobile dropdown menu
-│   ├── hero.tsx               # Animated hero with store buttons and device mockup
-│   ├── videoIntro.tsx         # Video teaser image with animated play icon
-│   ├── feature.tsx            # Features grid (data + layout)
-│   ├── featureCard.tsx        # Single feature card with hover effects
-│   ├── mobileConvenience.tsx  # Phone image + stats grid
-│   ├── infoCard.tsx           # Single stat card
-│   ├── testimonials.tsx       # Testimonials grid (data + layout)
-│   ├── testimonialCard.tsx    # Single testimonial with avatar
-│   ├── footer.tsx             # Footer with links and store buttons
-│   └── ui/                    # shadcn/ui primitives
-│       ├── avatar.tsx
-│       ├── button.tsx         # CVA-based Button with variants and sizes
-│       └── dropdown-menu.tsx
-├── lib/
-│   └── utils.ts               # cn() helper (clsx + tailwind-merge)
+├── .github/
+│   ├── workflows/ci.yml              # Lint, typecheck, test and build on every push / PR
+│   └── dependabot.yml                # Weekly dependency and GitHub Actions update PRs
+├── __tests__/unit/                   # Vitest unit + axe-core accessibility tests
 ├── public/
-│   ├── favicon.png
-│   ├── image/                 # Hero/phone mockups, video background, avatars
-│   └── logos/                 # Apple and Google store logos
-├── components.json            # shadcn/ui configuration
+│   ├── image/                        # Hero, phone, showcase and avatar images (WebP)
+│   └── logos/                        # App Store / Google Play logos
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx                # Metadata, font, skip link, Header, <main>, Footer
+│   │   ├── page.tsx                  # Composes the page sections
+│   │   ├── not-found.tsx             # Custom 404 page
+│   │   ├── opengraph-image.tsx       # Generated social preview image (1200×630)
+│   │   ├── robots.ts / sitemap.ts    # robots.txt and sitemap.xml
+│   │   ├── globals.css               # Tailwind import, theme tokens, base styles
+│   │   └── icon.png                  # Favicon (Next.js file convention)
+│   ├── modules/
+│   │   ├── Home/
+│   │   │   ├── Hero/                 # components/ constants/
+│   │   │   ├── Showcase/             # components/ constants/
+│   │   │   ├── Features/             # components/ constants/ types/
+│   │   │   ├── MobileConvenience/    # components/ constants/ types/
+│   │   │   └── Testimonials/         # components/ constants/ types/
+│   │   └── Shared/
+│   │       └── Footer/               # components/ constants/
+│   └── shared/
+│       ├── components/               # Header, HeaderMobileMenu, NavLink, Logo, Button, Container,
+│       │                             # Section, SectionHeading, IconBadge, StoreButtons,
+│       │                             # Reveal, HoverMotion, MotionProvider
+│       ├── constants/                # site.ts, nav.ts, motion.ts (shared animation variants)
+│       ├── hooks/                    # useActiveSection, useLockBodyScroll
+│       └── utils/                    # cn.ts, sectionTitleId.ts
+├── .env.example                      # NEXT_PUBLIC_SITE_URL
+├── components.json                   # shadcn/ui CLI config
 ├── eslint.config.mjs
-├── next.config.ts
-├── postcss.config.mjs         # Loads Tailwind v4 via @tailwindcss/postcss
-├── tsconfig.json              # Strict mode, @/* path alias
-└── package.json
+├── LICENSE                           # MIT
+├── next.config.ts                    # React Compiler, image formats, security headers
+├── tsconfig.json                     # Strict TS, `@/` → `src/`
+├── vitest.unit.config.mts
+└── vitest.setup.ts
 ```
 
----
+**Conventions**
+
+- Section content lives in `constants/*.data.ts`, types in `types/*.types.ts`, UI in `components/`.
+- Every list item has a stable `id` used as the React `key`; constants are `UPPER_SNAKE_CASE`.
+- Components are Server Components unless they need the browser; client components are marked with `"use client"` and kept as small as possible.
 
 ## Getting Started
 
 ### Prerequisites
 
-- **Node.js** 18.18 or newer (Node 20 LTS recommended)
-- **npm** (yarn, pnpm or bun also work)
+- [Node.js](https://nodejs.org/) 24 LTS recommended (minimum 20.9)
+- npm
 
 ### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/hamdiwerhanii/FullyLandingPageFramerMotion.git
 cd FullyLandingPageFramerMotion
-
-# Install dependencies
 npm install
 ```
 
-### Environment Variables
+### Environment variables
 
-None. The project does not read any environment variables.
+Optional. Copy `.env.example` to `.env.local` to override the defaults.
 
-### Available Scripts
+| Variable               | Description                                                                 | Default                 |
+| ---------------------- | --------------------------------------------------------------------------- | ----------------------- |
+| `NEXT_PUBLIC_SITE_URL` | Public URL of the site, used for absolute links in social previews, `robots.txt` and `sitemap.xml` | `http://localhost:3000` |
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Starts the development server at [http://localhost:3000](http://localhost:3000) |
-| `npm run build` | Creates an optimized production build |
-| `npm start` | Serves the production build (run `npm run build` first) |
-| `npm run lint` | Runs ESLint with the Next.js config |
+### Available scripts
 
----
+| Command             | Description                                          |
+| ------------------- | ---------------------------------------------------- |
+| `npm run dev`       | Start the dev server at http://localhost:3000        |
+| `npm run build`     | Create an optimized production build                 |
+| `npm start`         | Serve the production build                           |
+| `npm run lint`      | Run ESLint                                           |
+| `npm run typecheck` | Run the TypeScript compiler without emitting         |
+| `npm test`          | Run unit tests in watch mode                         |
+| `npm run test:unit` | Run unit tests once (used in CI)                     |
 
 ## Page Sections
 
-`app/page.tsx` stacks the sections in this order:
+| Section       | Anchor          | Module                     | Content                                                   |
+| ------------- | --------------- | -------------------------- | --------------------------------------------------------- |
+| Hero          | `#home`         | `Home/Hero`                | Headline, store buttons, phones image, intro card         |
+| Showcase      | –               | `Home/Showcase`            | Full-width banner image                                   |
+| Features      | `#features`     | `Home/Features`            | Four features with icons                                  |
+| Mobile        | `#mobile`       | `Home/MobileConvenience`   | Phone image and four statistics                           |
+| Testimonials  | `#testimonials` | `Home/Testimonials`        | Three client quotes with photos                           |
+| Download      | `#download`     | `Shared/Footer`            | Store buttons, footer links, social links, copyright     |
+
+## Animation System
+
+All animations are defined once in `src/shared/constants/motion.ts` and reused:
+
+| Name               | Effect                                        |
+| ------------------ | --------------------------------------------- |
+| `STAGGER`          | Reveals children one after another            |
+| `FADE_UP`          | Fades in while moving up                      |
+| `SLIDE_FROM_LEFT`  | Slides in from the left                       |
+| `SLIDE_FROM_RIGHT` | Slides in from the right                      |
+| `HOVER_EFFECTS`    | `lift`, `tilt` and `grow` hover interactions  |
+
+Usage inside any (server) component:
 
 ```tsx
-<>
-  <Navbar />
-  <Hero />
-  <VideoIntro />
-  <Feature />
-  <MobileConvenience />
-  <Testimonials />
-  <Footer />
-</>
-```
-
-| Section | Component | Content source |
-| --- | --- | --- |
-| Navigation | `navbar.tsx` | Hard-coded links: Home, About Us, Contact Us, Docs |
-| Hero | `hero.tsx` | Headline, subtitle, store buttons, `public/image/iphones.png` |
-| Video intro | `videoIntro.tsx` | `public/image/Background.png` + play icon |
-| Features | `feature.tsx` → `featureCard.tsx` | `FEATURES` array (4 items) |
-| Mobile convenience | `mobileConvenience.tsx` → `infoCard.tsx` | `OPTIONS` array (4 stats) |
-| Testimonials | `testimonials.tsx` → `testimonialCard.tsx` | `TESTIMONIALS` array (3 items, `avatar1–3.jpg`) |
-| Footer | `footer.tsx` | `LINKS` array + store buttons |
-
-To change the copy, edit the data arrays at the top of each section component.
-
-### Using the Button primitive
-
-```tsx
-import { Button } from "@/components/ui/button";
-
-export default function CTA() {
-  return (
-    <Button variant="secondary" size="lg">
-      Get Started
-    </Button>
-  );
-}
-```
-
-Variants: `default`, `destructive`, `outline`, `secondary`, `ghost`, `link`. Sizes: `default`, `sm`, `lg`, `icon`.
-
----
-
-## Animation Approach
-
-Each animated section follows the same pattern:
-
-```tsx
-const ref = useRef(null);
-const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-<motion.div
-  ref={ref}
-  initial="hidden"
-  animate={isInView ? "visible" : "hidden"}
-  variants={containerVariants} // uses staggerChildren
->
-  {items.map((item) => (
-    <motion.div key={item.id} variants={cardVariants}>…</motion.div>
+<RevealGroup as="ul" className="grid gap-8">
+  {ITEMS.map((item) => (
+    <RevealItem as="li" key={item.id}>…</RevealItem>
   ))}
-</motion.div>
+</RevealGroup>
 ```
 
-- The parent `containerVariants` use `staggerChildren` / `delayChildren`, so child cards animate one after another.
-- Child variants animate `opacity`, `y`/`x` and `scale` from a "hidden" to a "visible" state.
-- Animated components are marked `"use client"` because Framer Motion runs in the browser.
+`RevealGroup` animates when it scrolls into view (`playOnMount` animates immediately, used by the hero).
 
----
+## Customization
 
-## Configuration Notes
+- **Content:** edit the module's `constants/*.data.ts` file (for example `src/modules/Home/Features/constants/features.data.ts`).
+- **App name, description, store and social links:** `src/shared/constants/site.ts`.
+- **Navigation:** `src/shared/constants/nav.ts`; the active-section highlight works for any item whose `href` matches a section `id`.
+- **Colors and font:** the `@theme` block in `src/app/globals.css` (`--color-ink`) and the `Roboto` import in `src/app/layout.tsx`.
+- **Animations:** tweak durations, distances and easing in `src/shared/constants/motion.ts`.
 
-- **Tailwind v4** is configured CSS-first in `app/globals.css` (`@import "tailwindcss"`, `@theme inline`, CSS variables). There is no `tailwind.config.js`.
-- **PostCSS** loads Tailwind through `@tailwindcss/postcss` (`postcss.config.mjs`).
-- **shadcn/ui** settings live in `components.json`. You can add more components with the shadcn CLI and they will land in `components/ui`.
-- **Path alias**: `@/*` maps to the project root (`tsconfig.json`).
+## Testing and Quality
 
----
+Unit tests in `__tests__/unit/` cover:
+
+- `cn()` class merging
+- Header mobile menu: toggle, `Escape`, close on link click, body scroll lock, anchor links
+- Store buttons: correct, safe external links
+- Sections: features list and headings, statistics as `<dt>`/`<dd>` pairs, testimonial photos labelled by name
+- `robots.txt` and `sitemap.xml` output
+- **Accessibility**: every section, the header, the footer and the 404 page are scanned with [axe-core](https://github.com/dequelabs/axe-core) against WCAG 2.1 AA and best-practice rules (color contrast is checked manually, since jsdom has no layout engine)
+
+The CI workflow runs lint, typecheck, unit tests and a production build on every push to `main` and every pull request. Dependabot opens weekly pull requests for dependency and GitHub Actions updates, so CI tests every upgrade before it is merged. `npm audit` reports 0 vulnerabilities; `package.json` uses an npm `overrides` entry so Next's ESLint plugin uses `tinyglobby` instead of `fast-glob`, avoiding an unpatched advisory in the `braces` package.
 
 ## Deployment
 
-The repository has no platform-specific deployment config. As a standard Next.js app, it can be deployed to [Vercel](https://vercel.com/) by importing the repo, or to any Node.js host with:
+The page is fully static, so it deploys anywhere Next.js runs. The simplest option is [Vercel](https://vercel.com/new): import the repository, set `NEXT_PUBLIC_SITE_URL` to the production URL and deploy with the default settings.
 
-```bash
-npm run build
-npm start
-```
+## Roadmap
 
----
-
-## Project Status and Roadmap
-
-This is a front-end demo/template. Some parts are placeholders:
-
-- [ ] Update the page metadata in `app/layout.tsx` (it still says "Create Next App")
-- [ ] Replace placeholder branding ("Tailwind UI" in the navbar, "Material Tailwind" in the footer)
-- [ ] Turn navbar and footer items into real links/anchors (they are currently plain text with no `href`)
-- [ ] Link the App Store / Google Play buttons to real store pages
-- [ ] Make the video section play a real video (it currently shows a static image with a play icon)
-- [ ] Fix image `alt` texts (store logos use `"metamask"` / `"ios"`) to improve accessibility
-- [ ] Respect `prefers-reduced-motion` for users who disable animations
-- [ ] Add a dark-mode toggle (dark theme tokens already exist in `globals.css`)
-
----
-
-## Contributing
-
-Contributions and suggestions are welcome.
-
-1. Fork the repository
-2. Create a branch: `git checkout -b feat/your-feature`
-3. Commit your changes: `git commit -m "feat: add your feature"`
-4. Push the branch: `git push origin feat/your-feature`
-5. Open a Pull Request
-
----
+- Deploy and add a live demo link to this README
+- Add a real intro video to the showcase section
+- Point the store buttons to real app listings once the app is published
 
 ## License
 
-No license file is currently included; all rights reserved by the author.
-
-Apple and Google logos and the device images are for demonstration only. Follow the respective brand guidelines if you reuse them.
-
----
+Released under the [MIT License](LICENSE).
 
 ## Author
 
-**Hamdi Werhani**: GitHub [@hamdiwerhanii](https://github.com/hamdiwerhanii)
+**Hamdi Werhani** — GitHub [@hamdiwerhanii](https://github.com/hamdiwerhanii)
