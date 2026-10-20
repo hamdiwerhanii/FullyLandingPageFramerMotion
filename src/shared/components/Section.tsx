@@ -1,0 +1,19 @@
+import type { ReactNode } from "react";
+import Container from "@/shared/components/Container";
+import { sectionTitleId } from "@/shared/utils/sectionTitleId";
+import { cn } from "@/shared/utils/cn";
+
+type SectionProps = {
+  id: string;
+  className?: string;
+  containerClassName?: string;
+  children: ReactNode;
+};
+
+export default function Section({ id, className, containerClassName, children }: SectionProps) {
+  return (
+    <section id={id} aria-labelledby={sectionTitleId(id)} className={cn("py-20 md:py-28", className)}>
+      <Container className={containerClassName}>{children}</Container>
+    </section>
+  );
+}
